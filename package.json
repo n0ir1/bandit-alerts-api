@@ -22,14 +22,16 @@
   "dependencies": {
     "@nestjs/common": "^5.1.0",
     "@nestjs/core": "^5.1.0",
+    "@nestjs/graphql": "^5.4.0",
     "@nestjs/microservices": "^5.4.0",
-    "@nestjs/websockets": "^5.4.0",
+    "apollo-server-express": "^2.1.0",
     "class-transformer": "^0.1.10",
     "class-validator": "^0.9.1",
+    "graphql": "^14.0.2",
+    "graphql-subscriptions": "^1.0.0",
     "reflect-metadata": "^0.1.12",
     "rxjs": "^6.2.2",
-    "typescript": "^3.0.1",
-    "ws": "^6.1.0"
+    "typescript": "^3.0.1"
   },
   "devDependencies": {
     "@nestjs/testing": "^5.1.0",
