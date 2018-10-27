@@ -1,8 +1,3 @@
-type Query {
-  getDonationAlerts: [DonationAlert]
-  donationAlert(id: ID): DonationAlert
-}
-
 type Mutation {
   donationAlertsSend(
     id: ID!
@@ -13,7 +8,7 @@ type Mutation {
 }
 
 type Subscription {
-  newDonationAlert: DonationAlert
+  newDonationAlert(id: ID!): DonationAlert
 }
 
 type DonationAlert {

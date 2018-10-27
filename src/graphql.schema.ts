@@ -10,13 +10,9 @@ export abstract class IMutation {
 }
 
 export abstract class IQuery {
-    abstract getDonationAlerts(): DonationAlert[] | Promise<DonationAlert[]>;
-
-    abstract donationAlert(id?: string): DonationAlert | Promise<DonationAlert>;
-
     abstract temp__(): boolean | Promise<boolean>;
 }
 
 export abstract class ISubscription {
-    abstract newDonationAlert(): DonationAlert | Promise<DonationAlert>;
+    abstract newDonationAlert(id: string): DonationAlert | Promise<DonationAlert>;
 }
