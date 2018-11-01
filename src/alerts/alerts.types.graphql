@@ -1,9 +1,9 @@
 type Mutation {
   donationAlertsSend(
     id: ID!
-    username: String
-    amount: Int
-    text: String
+    username: String!
+    amount: Int!
+    text: String!
   ): DonationAlert
 }
 
