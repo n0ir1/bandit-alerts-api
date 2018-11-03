@@ -6,7 +6,7 @@ export class DonationAlert {
 }
 
 export abstract class IMutation {
-    abstract donationAlertsSend(id: string, username?: string, amount?: number, text?: string): DonationAlert | Promise<DonationAlert>;
+    abstract donationAlertsSend(id: string, username: string, amount: number, text: string): DonationAlert | Promise<DonationAlert>;
 }
 
 export abstract class IQuery {
