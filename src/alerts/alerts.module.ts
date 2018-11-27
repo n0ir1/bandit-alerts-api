@@ -1,7 +1,11 @@
 import { Module } from '@nestjs/common';
-import { AlertsResolvers } from './alerts.resolvers';
+import { AlertsResolvers } from './alerts.resolver';
+import { HistoryService } from './history.service';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { History } from './history.entity';
 
 @Module({
-  providers: [AlertsResolvers],
+  imports: [TypeOrmModule.forFeature([History])],
+  providers: [AlertsResolvers, HistoryService],
 })
 export class AlertsModule {}

@@ -1,17 +1,21 @@
+type Query {
+  alerts: [Alert]
+}
+
 type Mutation {
   donationAlertsSend(
     id: ID!
     username: String!
     amount: Int!
     text: String!
-  ): DonationAlert
+  ): Alert
 }
 
 type Subscription {
-  newDonationAlert(id: ID!): DonationAlert
+  newDonationAlert(id: ID!): Alert
 }
 
-type DonationAlert {
+type Alert {
   id: ID
   username: String
   amount: Int
