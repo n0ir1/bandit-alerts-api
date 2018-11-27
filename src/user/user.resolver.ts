@@ -10,10 +10,8 @@ export class UserResolvers {
   @Query('user')
   @UseGuards(GraphqlAuthGuard)
   async user(obj, args, ctx) {
-    if (!ctx.req.user) {
-      throw new Error('Unauthorized');
-    }
+    const { id } = ctx.req.user;
 
-    return await this.userService.findOne(ctx.req.user.id);
+    return await this.userService.findOne(id);
   }
 }
