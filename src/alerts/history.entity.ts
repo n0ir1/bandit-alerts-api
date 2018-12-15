@@ -12,7 +12,10 @@ export class History {
   id: string;
 
   @Column({ type: 'varchar' })
-  username: string;
+  userId: string;
+
+  @Column({ type: 'varchar' })
+  donatorId: string;
 
   @Column({ type: 'int' })
   amount: number;
