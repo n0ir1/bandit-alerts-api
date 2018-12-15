@@ -4,11 +4,11 @@ type Query {
 
 type Mutation {
   donationAlertsSend(
-    id: ID!
-    username: String!
+    userId: ID!
+    donatorId: ID!
     amount: Int!
     text: String!
-  ): Alert
+  ): Boolean
 }
 
 type Subscription {
@@ -17,7 +17,8 @@ type Subscription {
 
 type Alert {
   id: ID
-  username: String
+  userId: String
+  donatorId: String
   amount: Int
   text: String
 }

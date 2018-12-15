@@ -2,7 +2,8 @@ import { Mutation, Resolver, Subscription, Query } from '@nestjs/graphql';
 import { withFilter, PubSub } from 'graphql-subscriptions';
 import { HistoryService } from './history.service';
 import { UseGuards } from '@nestjs/common';
-import { GraphqlAuthGuard } from 'auth/guard/graphqlAuth.guard';
+import { GraphqlAuthGuard } from 'auth/guards/graphqlAuth.guard';
+import { AuthGuard } from 'auth/guards/auth.guard';
 
 const pubsub = new PubSub();
 
@@ -12,24 +13,27 @@ export class AlertsResolvers {
 
   @Query('alerts')
   @UseGuards(GraphqlAuthGuard)
+  @UseGuards(AuthGuard)
   async getAlerts(obj, args, ctx) {
     return await this.historyService.find({
       where: {
-        username: ctx.req.user.username,
+        userId: ctx.req.user.userId,
       },
     });
   }
 
   @Mutation('donationAlertsSend')
   async create(obj, args) {
+    const { userId, donatorId, text, amount } = args;
     const alert = await this.historyService.add({
-      username: args.username,
-      text: args.text,
-      amount: args.amount,
+      userId,
+      donatorId,
+      text,
+      amount,
     });
 
-    pubsub.publish('newDonationAlert', { newDonationAlert: args });
-    return args;
+    pubsub.publish('newDonationAlert', { newDonationAlert: alert });
+    return true;
   }
 
   @Subscription('newDonationAlert')
@@ -38,7 +42,7 @@ export class AlertsResolvers {
       subscribe: withFilter(
         () => pubsub.asyncIterator('newDonationAlert'),
         (payload, variables) => {
-          return payload.newDonationAlert.id === variables.id;
+          return payload.newDonationAlert.userId === variables.id;
         },
       ),
     };
