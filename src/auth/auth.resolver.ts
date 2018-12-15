@@ -9,7 +9,7 @@ export class AuthResolvers {
   async login(obj, args, ctx) {
     const { username, password } = args;
     const user = await this.authService.logIn(username, password);
-    const token = await this.authService.createToken(user.id);
+    const token = await this.authService.createToken(user.userId);
 
     return { token };
   }

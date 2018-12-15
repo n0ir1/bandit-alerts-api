@@ -13,4 +13,11 @@ export class GraphqlAuthGuard extends AuthGuard('jwt') {
     const { req } = ctx.getContext();
     return super.canActivate(new ExecutionContextHost([req]));
   }
+
+  handleRequest(err, user, info): any {
+    if (!user) {
+      return null;
+    }
+    return user;
+  }
 }

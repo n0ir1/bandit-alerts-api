@@ -32,14 +32,14 @@ export class AuthService {
       },
     });
     if (checkUser) {
-      return new Error('Duplicate user');
+      throw new Error('Duplicate user');
     }
     const newUser = await this.userService.create({
       username,
       password: this.hashPassword(password),
     });
 
-    return await this.createToken(newUser.id);
+    return await this.createToken(newUser.userId);
   }
 
   async logIn(username: string, password: string) {
@@ -71,12 +71,12 @@ export class AuthService {
   async verify(payload) {
     const user = await this.userService.findOne({
       where: {
-        id: payload.userId,
+        userId: payload.userId,
       },
     });
 
     if (!user) {
-      return new Error('Invalid authorization');
+      throw new Error('Invalid authorization');
     }
 
     return user;
