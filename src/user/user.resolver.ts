@@ -1,6 +1,6 @@
 import { Resolver, Query } from '@nestjs/graphql';
 import { UseGuards } from '@nestjs/common';
-import { GraphqlAuthGuard } from 'auth/guard/graphqlAuth.guard';
+import { GraphqlAuthGuard } from 'auth/guards/graphqlAuth.guard';
 import { UserService } from './user.service';
 
 @Resolver('User')
@@ -10,8 +10,17 @@ export class UserResolvers {
   @Query('user')
   @UseGuards(GraphqlAuthGuard)
   async user(obj, args, ctx) {
-    const { id } = ctx.req.user;
+    if (args.name) {
+      return await this.userService.findByName(args.name);
+    }
 
-    return await this.userService.findOne(id);
+    let id = args.id;
+    if (!args.name && !args.id) {
+      if (!ctx.req.user) {
+        throw new Error('Unauthorized');
+      }
+      id = ctx.req.user.userId;
+    }
+    return await this.userService.findByUserId(id);
   }
 }

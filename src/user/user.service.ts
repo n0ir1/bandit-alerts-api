@@ -18,6 +18,22 @@ export class UserService {
     return this.userRepository.find(findOptions);
   }
 
+  async findByName(name: string) {
+    return this.userRepository.findOne({
+      where: {
+        username: name,
+      },
+    });
+  }
+
+  async findByUserId(id) {
+    return await this.userRepository.findOne({
+      where: {
+        userId: id,
+      },
+    });
+  }
+
   async create(userPayload) {
     const alert = new UserEntity();
     Object.keys(userPayload).forEach(field => {
