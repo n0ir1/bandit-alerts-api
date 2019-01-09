@@ -4,6 +4,7 @@ export class Alert {
     donatorId?: string;
     amount?: number;
     text?: string;
+    createdAt?: string;
 }
 
 export abstract class IMutation {

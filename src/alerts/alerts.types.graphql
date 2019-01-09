@@ -21,4 +21,5 @@ type Alert {
   donatorId: String
   amount: Int
   text: String
+  createdAt: String
 }

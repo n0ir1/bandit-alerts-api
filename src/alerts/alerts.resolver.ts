@@ -19,6 +19,9 @@ export class AlertsResolvers {
       where: {
         userId: ctx.req.user.userId,
       },
+      order: {
+        createdAt: 'DESC',
+      },
     });
   }
 
