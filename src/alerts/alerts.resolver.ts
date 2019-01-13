@@ -28,6 +28,15 @@ export class AlertsResolvers {
   @Mutation('donationAlertsSend')
   async create(obj, args) {
     const { userId, donatorId, text, amount } = args;
+
+    if (Number.isNaN(amount) || amount < 0) {
+      throw new Error('Value is not a number or is less than 1');
+    }
+
+    if (text.length < 1 || text.length > 200) {
+      throw new Error('Text must be at most 200 characters');
+    }
+
     const alert = await this.historyService.add({
       userId,
       donatorId,

@@ -19,11 +19,17 @@ export class UserService {
   }
 
   async findByName(name: string) {
-    return this.userRepository.findOne({
+    const user = await this.userRepository.findOne({
       where: {
         username: name,
       },
     });
+
+    if (!user) {
+      throw new Error('User not Found');
+    }
+
+    return user;
   }
 
   async findByUserId(id) {
