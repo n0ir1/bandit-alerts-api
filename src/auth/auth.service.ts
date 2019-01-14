@@ -1,12 +1,16 @@
 import { pbkdf2Sync, randomBytes } from 'crypto';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject, forwardRef } from '@nestjs/common';
 import * as jwt from 'jsonwebtoken';
 import { UserService } from '../user/user.service';
 import { config } from '../../config';
+import { TokensService } from './tokens.service';
 
 @Injectable()
 export class AuthService {
-  constructor(private readonly userService: UserService) {}
+  constructor(
+    private readonly userService: UserService,
+    private readonly tokensService: TokensService,
+  ) {}
 
   private getHash(password, salt) {
     return pbkdf2Sync(password, salt, 2048, 32, 'sha512').toString('hex');
@@ -39,7 +43,7 @@ export class AuthService {
       password: this.hashPassword(password),
     });
 
-    return await this.createToken(newUser.userId);
+    return await this.tokensService.generateTokens(newUser.userId);
   }
 
   async logIn(username: string, password: string) {
@@ -56,27 +60,6 @@ export class AuthService {
 
     if (!isValidPassword) {
       throw new Error('Invalid password');
-    }
-
-    return user;
-  }
-
-  async createToken(userId) {
-    const user = { userId };
-    return await jwt.sign(user, config.jwt.secret, {
-      expiresIn: config.jwt.expiresIn,
-    });
-  }
-
-  async verify(payload) {
-    const user = await this.userService.findOne({
-      where: {
-        userId: payload.userId,
-      },
-    });
-
-    if (!user) {
-      throw new Error('Invalid authorization');
     }
 
     return user;

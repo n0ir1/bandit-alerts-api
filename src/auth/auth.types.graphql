@@ -1,11 +1,14 @@
 type Query {
-  login(username: String!, password: String!): Token
+  login(username: String!, password: String!): Tokens
+  tokens(refreshToken: String!): Tokens
 }
 
 type Mutation {
-  signup(username: String!, password: String!): Token
+  signup(username: String!, password: String!): Tokens
+  logout: Boolean
 }
 
-type Token {
-  token: String
+type Tokens {
+  accessToken: String
+  refreshToken: String
 }
