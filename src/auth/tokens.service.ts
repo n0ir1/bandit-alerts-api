@@ -36,7 +36,6 @@ export class TokensService {
     });
 
     const tokens = new TokensEntity();
-    tokens.accessToken = accessToken;
     tokens.refreshToken = refreshToken;
     tokens.userId = userId;
     await this.tokensRepository.save(tokens);

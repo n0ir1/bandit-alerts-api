@@ -3,7 +3,6 @@ import { withFilter, PubSub } from 'graphql-subscriptions';
 import { HistoryService } from './history.service';
 import { UseGuards } from '@nestjs/common';
 import { GraphqlAuthGuard } from 'auth/guards/graphqlAuth.guard';
-import { AuthGuard } from 'auth/guards/auth.guard';
 
 const pubsub = new PubSub();
 
@@ -13,7 +12,6 @@ export class AlertsResolvers {
 
   @Query('alerts')
   @UseGuards(GraphqlAuthGuard)
-  @UseGuards(AuthGuard)
   async getAlerts(obj, args, ctx) {
     return await this.historyService.find({
       where: {

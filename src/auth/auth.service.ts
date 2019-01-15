@@ -1,8 +1,6 @@
 import { pbkdf2Sync, randomBytes } from 'crypto';
-import { Injectable, Inject, forwardRef } from '@nestjs/common';
-import * as jwt from 'jsonwebtoken';
+import { Injectable } from '@nestjs/common';
 import { UserService } from '../user/user.service';
-import { config } from '../../config';
 import { TokensService } from './tokens.service';
 
 @Injectable()

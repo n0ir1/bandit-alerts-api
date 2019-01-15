@@ -12,9 +12,6 @@ export class Tokens {
   id: string;
 
   @Column({ type: 'varchar' })
-  accessToken: string;
-
-  @Column({ type: 'varchar' })
   refreshToken: string;
 
   @Column({ type: 'varchar' })

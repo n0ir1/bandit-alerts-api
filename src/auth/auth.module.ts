@@ -1,10 +1,9 @@
-import { Module, forwardRef } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { UserModule } from '../user/user.module';
 import { JwtStrategy } from './strategy/jwt.strategy';
 import { GraphqlAuthGuard } from './guards/graphqlAuth.guard';
 import { AuthResolvers } from './auth.resolver';
-import { AuthGuard } from './guards/auth.guard';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from 'user/user.entity';
 import { TokensService } from './tokens.service';
@@ -18,7 +17,6 @@ import { Tokens } from './tokens.entity';
     JwtStrategy,
     GraphqlAuthGuard,
     AuthResolvers,
-    AuthGuard,
   ],
 })
 export class AuthModule {}
