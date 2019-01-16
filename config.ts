@@ -4,7 +4,7 @@ export const config = {
     accessTokenExpires: '10m',
     refreshTokenExpires: '7d',
   },
-  dbUrl: 'postgresql://postgres:IbSkQf3Ge1Ei@localhost:5432/bandit-alerts',
+  dbUrl: process.env.DB_URL || '',
   session: {
     secret: 'secret-key',
   },
