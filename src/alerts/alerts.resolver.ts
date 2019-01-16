@@ -2,7 +2,7 @@ import { Mutation, Resolver, Subscription, Query } from '@nestjs/graphql';
 import { withFilter, PubSub } from 'graphql-subscriptions';
 import { HistoryService } from './history.service';
 import { UseGuards } from '@nestjs/common';
-import { GraphqlAuthGuard } from 'auth/guards/graphqlAuth.guard';
+import { GraphqlAuthGuard } from '../auth/guards/graphqlAuth.guard';
 
 const pubsub = new PubSub();
 

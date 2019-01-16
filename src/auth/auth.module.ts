@@ -5,7 +5,7 @@ import { JwtStrategy } from './strategy/jwt.strategy';
 import { GraphqlAuthGuard } from './guards/graphqlAuth.guard';
 import { AuthResolvers } from './auth.resolver';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { User } from 'user/user.entity';
+import { User } from '../user/user.entity';
 import { TokensService } from './tokens.service';
 import { Tokens } from './tokens.entity';
 
