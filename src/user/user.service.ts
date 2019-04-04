@@ -3,6 +3,11 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, FindOneOptions, FindManyOptions } from 'typeorm';
 import { User as UserEntity } from './user.entity';
 
+interface IUserPayload {
+  username: string;
+  password: string;
+}
+
 @Injectable()
 export class UserService {
   constructor(
@@ -32,7 +37,7 @@ export class UserService {
     return user;
   }
 
-  async findByUserId(id) {
+  async findByUserId(id: string) {
     return await this.userRepository.findOne({
       where: {
         userId: id,
@@ -40,7 +45,7 @@ export class UserService {
     });
   }
 
-  async create(userPayload) {
+  async create(userPayload: IUserPayload) {
     const alert = new UserEntity();
     Object.keys(userPayload).forEach(field => {
       alert[field] = userPayload[field];

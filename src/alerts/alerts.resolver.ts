@@ -1,21 +1,25 @@
-import { Mutation, Resolver, Subscription, Query } from '@nestjs/graphql';
-import { withFilter, PubSub } from 'graphql-subscriptions';
+import { Mutation, Resolver, Subscription, Query, Args } from '@nestjs/graphql';
+import { PubSub } from 'graphql-subscriptions';
 import { HistoryService } from './history.service';
 import { UseGuards } from '@nestjs/common';
-import { GraphqlAuthGuard } from '../auth/guards/graphqlAuth.guard';
+import { GraphqlAuthGuard } from '../common/guards/graphqlAuth.guard';
+import { Alert } from './models/alert';
+import { NewAlertInput } from './dto/new-alert.input';
+import { CurrentUser } from '../common/decorators/user.decorator';
+import { User } from '../user/models/user';
 
 const pubsub = new PubSub();
 
-@Resolver('Alerts')
+@Resolver(of => Alert)
 export class AlertsResolvers {
   constructor(private readonly historyService: HistoryService) {}
 
-  @Query('alerts')
+  @Query(returns => [Alert])
   @UseGuards(GraphqlAuthGuard)
-  async getAlerts(obj, args, ctx) {
+  async alerts(@CurrentUser() user: User) {
     return await this.historyService.find({
       where: {
-        userId: ctx.req.user.userId,
+        userId: user.userId,
       },
       order: {
         createdAt: 'DESC',
@@ -23,38 +27,19 @@ export class AlertsResolvers {
     });
   }
 
-  @Mutation('donationAlertsSend')
-  async create(obj, args) {
-    const { userId, donatorId, text, amount } = args;
-
-    if (Number.isNaN(amount) || amount < 0) {
-      throw new Error('Value is not a number or is less than 1');
-    }
-
-    if (text.length < 1 || text.length > 200) {
-      throw new Error('Text must be at most 200 characters');
-    }
-
-    const alert = await this.historyService.add({
-      userId,
-      donatorId,
-      text,
-      amount,
-    });
+  @Mutation(returns => Boolean, { nullable: true })
+  async addDonationAlert(@Args('newAlertInput') newAlertInput: NewAlertInput) {
+    const alert = await this.historyService.add(newAlertInput);
 
     pubsub.publish('newDonationAlert', { newDonationAlert: alert });
     return true;
   }
 
-  @Subscription('newDonationAlert')
-  newDonationAlert() {
-    return {
-      subscribe: withFilter(
-        () => pubsub.asyncIterator('newDonationAlert'),
-        (payload, variables) => {
-          return payload.newDonationAlert.userId === variables.id;
-        },
-      ),
-    };
+  @Subscription(returns => Alert, {
+    filter: (payload: any, variables: any) =>
+      payload.newDonationAlert.userId === variables.id,
+  })
+  newDonationAlert(@Args('id') id: string) {
+    return pubsub.asyncIterator('newDonationAlert');
   }
 }
