@@ -1,11 +1,18 @@
 import { Injectable, Inject, forwardRef } from '@nestjs/common';
-import * as jwt from 'jsonwebtoken';
-import { UserService } from '../user/user.service';
-import { config } from '../../config';
-import { Tokens as TokensEntity } from './tokens.entity';
-import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, FindManyOptions, FindOneOptions } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
+import { JwtService } from '@nestjs/jwt';
 import * as ms from 'ms';
+import { Tokens as TokensEntity } from './tokens.entity';
+import { Tokens } from './models/tokens';
+import { UserService } from '../user/user.service';
+import { User } from '../user/user.entity';
+import { config } from '../../config';
+
+export interface JwtPayload {
+  userId: string;
+  iat?: number;
+}
 
 @Injectable()
 export class TokensService {
@@ -14,6 +21,7 @@ export class TokensService {
     private readonly tokensRepository: Repository<TokensEntity>,
     @Inject(forwardRef(() => UserService))
     private readonly userService: UserService,
+    private readonly jwtService: JwtService,
   ) {}
 
   async findOne(findOptions?: FindOneOptions) {
@@ -24,16 +32,17 @@ export class TokensService {
     return this.tokensRepository.find(findOptions);
   }
 
-  async generateTokens(userId) {
-    const user = { userId };
+  async generateTokens(userId: string): Promise<Tokens> {
+    const user: JwtPayload = { userId };
 
-    const accessToken = await jwt.sign(user, config.jwt.secret, {
-      expiresIn: config.jwt.accessTokenExpires,
-    });
-
-    const refreshToken = await jwt.sign(user, config.jwt.secret, {
-      expiresIn: config.jwt.refreshTokenExpires,
-    });
+    const [accessToken, refreshToken] = await Promise.all([
+      this.jwtService.sign(user, {
+        expiresIn: config.jwt.accessTokenExpires,
+      }),
+      this.jwtService.sign(user, {
+        expiresIn: config.jwt.refreshTokenExpires,
+      }),
+    ]);
 
     const tokens = new TokensEntity();
     tokens.refreshToken = refreshToken;
@@ -43,7 +52,7 @@ export class TokensService {
     return { accessToken, refreshToken };
   }
 
-  async getAccessTokenFromRefreshToken(refreshToken) {
+  async getPairTokensFromRefreshToken(refreshToken: string): Promise<Tokens> {
     const tokenData = await this.findOne({
       where: { refreshToken },
     });
@@ -55,32 +64,20 @@ export class TokensService {
     const now = new Date().getTime();
     const createdAt = new Date(tokenData.createdAt).getTime();
 
-    if (now - createdAt < ms(config.jwt.refreshTokenExpires)) {
-      await this.tokensRepository.delete({ id: tokenData.id });
-      return await this.generateTokens(tokenData.userId);
-    } else {
-      await this.tokensRepository.delete({ id: tokenData.id });
+    await this.removeTokenByUserId(tokenData.id);
+
+    if (!(now - createdAt < ms(config.jwt.refreshTokenExpires))) {
       throw new Error('Refresh token expired');
     }
+
+    return await this.generateTokens(tokenData.userId);
   }
 
-  async removeTokenById(userId) {
-    return await this.tokensRepository.delete({
-      userId,
-    });
+  async removeTokenByUserId(userId: string) {
+    return await this.tokensRepository.delete({ userId });
   }
 
-  async verify(payload) {
-    const user = await this.userService.findOne({
-      where: {
-        userId: payload.userId,
-      },
-    });
-
-    if (!user) {
-      throw new Error('Invalid authorization');
-    }
-
-    return user;
+  async verify({ userId }: JwtPayload): Promise<User> {
+    return await this.userService.findByUserId(userId);
   }
 }
