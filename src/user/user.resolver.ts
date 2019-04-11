@@ -1,26 +1,33 @@
-import { Resolver, Query } from '@nestjs/graphql';
+import { Resolver, Query, Args } from '@nestjs/graphql';
 import { UseGuards } from '@nestjs/common';
-import { GraphqlAuthGuard } from '../auth/guards/graphqlAuth.guard';
+import { CurrentUser } from '../common/decorators/user.decorator';
+import { GraphqlAuthGuard } from '../common/guards/graphqlAuth.guard';
 import { UserService } from './user.service';
+import { User } from './models/user';
+import { UserArgs } from './dto/user.args';
 
-@Resolver('User')
+@Resolver(of => User)
 export class UserResolvers {
   constructor(private readonly userService: UserService) {}
 
-  @Query('user')
+  @Query(returns => User)
   @UseGuards(GraphqlAuthGuard)
-  async user(obj, args, ctx) {
-    if (args.name) {
-      return await this.userService.findByName(args.name);
+  async currentUser(@CurrentUser() user: User) {
+    return await this.userService.findByUserId(user.userId);
+  }
+
+  @Query(returns => User)
+  async user(@Args() args: UserArgs) {
+    const { id, name } = args;
+
+    if (name) {
+      return await this.userService.findByName(name);
     }
 
-    let id = args.id;
-    if (!args.name && !args.id) {
-      if (!ctx.req.user) {
-        throw new Error('Unauthorized');
-      }
-      id = ctx.req.user.userId;
+    if (id) {
+      return await this.userService.findByUserId(id);
     }
-    return await this.userService.findByUserId(id);
+
+    throw new Error('Args is empty');
   }
 }

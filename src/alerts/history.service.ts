@@ -3,6 +3,13 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, FindOneOptions, FindManyOptions } from 'typeorm';
 import { History as HistoryEntity } from './history.entity';
 
+interface IAlertPayload {
+  userId: string;
+  donatorId: string;
+  amount: number;
+  text: string;
+}
+
 @Injectable()
 export class HistoryService {
   constructor(
@@ -18,7 +25,7 @@ export class HistoryService {
     return this.historyRepository.find(findOptions);
   }
 
-  async add(alertPayload) {
+  async add(alertPayload: IAlertPayload) {
     const alert = new HistoryEntity();
     Object.keys(alertPayload).forEach(field => {
       alert[field] = alertPayload[field];
