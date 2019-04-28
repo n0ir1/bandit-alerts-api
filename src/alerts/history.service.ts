@@ -1,14 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, FindOneOptions, FindManyOptions } from 'typeorm';
-import { History as HistoryEntity } from './history.entity';
-
-interface IAlertPayload {
-  userId: string;
-  donatorId: string;
-  amount: number;
-  text: string;
-}
+import { HistoryEntity } from './entities/history.entity';
+import { NewAlertInput } from './dto/new-alert.input';
 
 @Injectable()
 export class HistoryService {
@@ -25,12 +19,9 @@ export class HistoryService {
     return this.historyRepository.find(findOptions);
   }
 
-  async add(alertPayload: IAlertPayload) {
-    const alert = new HistoryEntity();
-    Object.keys(alertPayload).forEach(field => {
-      alert[field] = alertPayload[field];
-    });
+  async save(newAlertInputData: NewAlertInput) {
+    const alert = new HistoryEntity({ ...newAlertInputData });
 
-    return this.historyRepository.save(alert);
+    return await this.historyRepository.save(alert);
   }
 }

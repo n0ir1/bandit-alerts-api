@@ -1,9 +1,7 @@
 import { Field, ID, ObjectType, Int } from 'type-graphql';
 
-
 @ObjectType()
 export class Alert {
-  
   @Field(type => ID)
   id: string;
 
@@ -19,6 +17,6 @@ export class Alert {
   @Field()
   text: string;
 
-  @Field()
-  createdAt: Date
+  @Field(type => Date)
+  createdAt: string;
 }

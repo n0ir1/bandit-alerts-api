@@ -7,7 +7,7 @@ import {
 } from 'typeorm';
 
 @Entity()
-export class History {
+export class HistoryEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
@@ -28,4 +28,8 @@ export class History {
 
   @UpdateDateColumn({ type: 'timestamp with time zone' })
   updatedAt: string;
+
+  constructor(partialHistory?: Partial<HistoryEntity>) {
+    partialHistory && Object.assign(this, partialHistory);
+  }
 }
