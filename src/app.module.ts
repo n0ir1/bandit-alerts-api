@@ -5,6 +5,7 @@ import { AlertsModule } from './alerts/alerts.module';
 import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
 import { config } from '../config';
+import { SharedModule } from './shared/shared.module';
 
 @Module({
   imports: [
@@ -15,15 +16,15 @@ import { config } from '../config';
       synchronize: true,
       cache: false,
     }),
-    AlertsModule,
     UserModule,
     AuthModule,
+    AlertsModule,
+    SharedModule,
     GraphQLModule.forRoot({
       installSubscriptionHandlers: true,
       autoSchemaFile: 'schema.gql',
       context: ({ req }) => ({ req }),
     }),
   ],
-  providers: [AlertsModule, UserModule, AuthModule],
 })
 export class ApplicationModule {}
