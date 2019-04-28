@@ -1,5 +1,6 @@
 import { Field, ID, ArgsType } from 'type-graphql';
 import { IsString, IsOptional } from 'class-validator';
+import { Trim } from '../../common/decorators/trim.decorator';
 
 @ArgsType()
 export class UserArgs {
@@ -10,5 +11,6 @@ export class UserArgs {
   @Field({ nullable: true })
   @IsString()
   @IsOptional()
-  name?: string;
+  @Trim()
+  username?: string;
 }
