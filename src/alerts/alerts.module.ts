@@ -1,11 +1,12 @@
 import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { AlertsResolvers } from './alerts.resolver';
 import { HistoryService } from './history.service';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { History } from './history.entity';
+import { HistoryEntity } from './entities/history.entity';
+import { UserModule } from '../user/user.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([History])],
+  imports: [UserModule, TypeOrmModule.forFeature([HistoryEntity])],
   providers: [AlertsResolvers, HistoryService],
 })
 export class AlertsModule {}

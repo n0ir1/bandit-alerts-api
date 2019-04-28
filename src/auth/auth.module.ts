@@ -1,22 +1,13 @@
 import { Module } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { UserModule } from '../user/user.module';
-import { JwtStrategy } from './strategy/jwt.strategy';
-import { GraphqlAuthGuard } from './guards/graphqlAuth.guard';
 import { AuthResolvers } from './auth.resolver';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { User } from '../user/user.entity';
-import { TokensService } from './tokens.service';
-import { Tokens } from './tokens.entity';
+import { JwtStrategy } from './strategy/jwt.strategy';
+import { UserModule } from '../user/user.module';
+import { TokensModule } from '../tokens/tokens.module';
 
 @Module({
-  imports: [UserModule, TypeOrmModule.forFeature([User, Tokens])],
-  providers: [
-    AuthService,
-    TokensService,
-    JwtStrategy,
-    GraphqlAuthGuard,
-    AuthResolvers,
-  ],
+  imports: [UserModule, TokensModule],
+  providers: [AuthService, AuthResolvers, JwtStrategy],
+  exports: [AuthService],
 })
 export class AuthModule {}

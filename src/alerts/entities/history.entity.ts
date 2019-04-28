@@ -7,19 +7,29 @@ import {
 } from 'typeorm';
 
 @Entity()
-export class Tokens {
+export class HistoryEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @Column({ type: 'varchar' })
-  refreshToken: string;
+  userId: string;
 
   @Column({ type: 'varchar' })
-  userId: string;
+  donatorId: string;
+
+  @Column({ type: 'int' })
+  amount: number;
+
+  @Column({ type: 'varchar' })
+  text: string;
 
   @CreateDateColumn({ type: 'timestamp with time zone' })
   createdAt: string;
 
   @UpdateDateColumn({ type: 'timestamp with time zone' })
   updatedAt: string;
+
+  constructor(partialHistory?: Partial<HistoryEntity>) {
+    partialHistory && Object.assign(this, partialHistory);
+  }
 }

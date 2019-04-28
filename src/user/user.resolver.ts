@@ -1,26 +1,29 @@
-import { Resolver, Query } from '@nestjs/graphql';
-import { UseGuards } from '@nestjs/common';
-import { GraphqlAuthGuard } from '../auth/guards/graphqlAuth.guard';
+import { Resolver, Query, Args } from '@nestjs/graphql';
+import { UseGuards, NotFoundException } from '@nestjs/common';
 import { UserService } from './user.service';
+import { User } from './models/user';
+import { UserArgs } from './dto/user.args';
+import { GraphqlAuthGuard } from '../common/guards/auth.guard';
+import { CurrentUser } from '../common/decorators/user.decorator';
 
-@Resolver('User')
+@Resolver(of => User)
 export class UserResolvers {
   constructor(private readonly userService: UserService) {}
 
-  @Query('user')
+  @Query(returns => User)
   @UseGuards(GraphqlAuthGuard)
-  async user(obj, args, ctx) {
-    if (args.name) {
-      return await this.userService.findByName(args.name);
+  async currentUser(@CurrentUser() { id }: User) {
+    return await this.userService.findOne({ id });
+  }
+
+  @Query(returns => User)
+  async user(@Args() args: UserArgs) {
+    const user = await this.userService.findOne(args);
+
+    if (!user) {
+      throw new NotFoundException('User not found');
     }
 
-    let id = args.id;
-    if (!args.name && !args.id) {
-      if (!ctx.req.user) {
-        throw new Error('Unauthorized');
-      }
-      id = ctx.req.user.userId;
-    }
-    return await this.userService.findByUserId(id);
+    return user;
   }
 }

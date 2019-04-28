@@ -1,6 +1,7 @@
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { ApplicationModule } from './app.module';
+import { TrimPipe } from './common/pipes/trim.pipe';
 
 import * as session from 'express-session';
 import * as passport from 'passport';
@@ -24,7 +25,7 @@ async function bootstrap() {
   app.use(passport.initialize());
   app.use(passport.session());
 
-  app.useGlobalPipes(new ValidationPipe());
+  app.useGlobalPipes(new TrimPipe(), new ValidationPipe());
   await app.listen(8080);
 }
 bootstrap();

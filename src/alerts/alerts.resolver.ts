@@ -1,21 +1,29 @@
-import { Mutation, Resolver, Subscription, Query } from '@nestjs/graphql';
-import { withFilter, PubSub } from 'graphql-subscriptions';
+import { Mutation, Resolver, Subscription, Query, Args } from '@nestjs/graphql';
+import { PubSub } from 'graphql-subscriptions';
 import { HistoryService } from './history.service';
-import { UseGuards } from '@nestjs/common';
-import { GraphqlAuthGuard } from '../auth/guards/graphqlAuth.guard';
+import { UseGuards, Inject, NotFoundException } from '@nestjs/common';
+import { Alert } from './models/alert';
+import { NewAlertInput } from './dto/new-alert.input';
+import { GraphqlAuthGuard } from '../common/guards/auth.guard';
+import { CurrentUser } from '../common/decorators/user.decorator';
+import { User } from '../user/models/user';
+import { PUB_SUB } from '../constants';
+import { UserService } from '../user/user.service';
 
-const pubsub = new PubSub();
-
-@Resolver('Alerts')
+@Resolver(of => Alert)
 export class AlertsResolvers {
-  constructor(private readonly historyService: HistoryService) {}
+  constructor(
+    private readonly historyService: HistoryService,
+    private readonly userService: UserService,
+    @Inject(PUB_SUB) private readonly pubsub: PubSub,
+  ) {}
 
-  @Query('alerts')
+  @Query(returns => [Alert])
   @UseGuards(GraphqlAuthGuard)
-  async getAlerts(obj, args, ctx) {
+  async alerts(@CurrentUser() user: User) {
     return await this.historyService.find({
       where: {
-        userId: ctx.req.user.userId,
+        id: user.id,
       },
       order: {
         createdAt: 'DESC',
@@ -23,38 +31,30 @@ export class AlertsResolvers {
     });
   }
 
-  @Mutation('donationAlertsSend')
-  async create(obj, args) {
-    const { userId, donatorId, text, amount } = args;
-
-    if (Number.isNaN(amount) || amount < 0) {
-      throw new Error('Value is not a number or is less than 1');
-    }
-
-    if (text.length < 1 || text.length > 200) {
-      throw new Error('Text must be at most 200 characters');
-    }
-
-    const alert = await this.historyService.add({
-      userId,
-      donatorId,
-      text,
-      amount,
+  @Mutation(returns => Boolean)
+  async addDonationAlert(
+    @Args('newAlertInput') newAlertInputData: NewAlertInput,
+  ): Promise<boolean> {
+    const user = await this.userService.findOne({
+      id: newAlertInputData.userId,
     });
 
-    pubsub.publish('newDonationAlert', { newDonationAlert: alert });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const alert: Alert = await this.historyService.save(newAlertInputData);
+
+    this.pubsub.publish('newDonationAlert', { newDonationAlert: alert });
     return true;
   }
 
-  @Subscription('newDonationAlert')
-  newDonationAlert() {
-    return {
-      subscribe: withFilter(
-        () => pubsub.asyncIterator('newDonationAlert'),
-        (payload, variables) => {
-          return payload.newDonationAlert.userId === variables.id;
-        },
-      ),
-    };
+  @Subscription(returns => Alert, {
+    filter: (payload: any, variables: any) => {
+      return payload.newDonationAlert.id === variables.id;
+    },
+  })
+  newDonationAlert(@Args('id') id: string) {
+    return this.pubsub.asyncIterator('newDonationAlert');
   }
 }

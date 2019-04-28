@@ -1,11 +1,11 @@
 import { Module } from '@nestjs/common';
 import { GraphQLModule } from '@nestjs/graphql';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { join } from 'path';
 import { AlertsModule } from './alerts/alerts.module';
 import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
 import { config } from '../config';
+import { SharedModule } from './shared/shared.module';
 
 @Module({
   imports: [
@@ -16,19 +16,15 @@ import { config } from '../config';
       synchronize: true,
       cache: false,
     }),
-    AlertsModule,
     UserModule,
     AuthModule,
+    AlertsModule,
+    SharedModule,
     GraphQLModule.forRoot({
-      typePaths: ['./**/*.graphql'],
       installSubscriptionHandlers: true,
-      definitions: {
-        path: join(process.cwd(), 'src/graphql.schema.ts'),
-        outputAs: 'class',
-      },
+      autoSchemaFile: 'schema.gql',
       context: ({ req }) => ({ req }),
     }),
   ],
-  providers: [AlertsModule, UserModule, AuthModule],
 })
 export class ApplicationModule {}

@@ -1,65 +1,58 @@
-import { pbkdf2Sync, randomBytes } from 'crypto';
-import { Injectable } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
+import { Tokens } from './models/tokens';
+import { SignupInput } from './dto/signup-input';
+import { LoginInput } from './dto/login-input';
 import { UserService } from '../user/user.service';
-import { TokensService } from './tokens.service';
+import { HashService } from '../hash/hash.service';
+import { TokensService } from '../tokens/tokens.service';
+import { JwtPayload } from '../tokens/interfaces/jwt-payload.interface';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly userService: UserService,
     private readonly tokensService: TokensService,
+    private readonly hashService: HashService,
   ) {}
 
-  private getHash(password, salt) {
-    return pbkdf2Sync(password, salt, 2048, 32, 'sha512').toString('hex');
-  }
-
-  public hashPassword(password) {
-    const salt = randomBytes(32).toString('hex');
-    const hash = this.getHash(password, salt);
-    return [salt, hash].join('$');
-  }
-
-  public checkPassword(saltedPasswordHash, candidatePassword) {
-    const originalHash = saltedPasswordHash.split('$')[1];
-    const salt = saltedPasswordHash.split('$')[0];
-    const hash = this.getHash(candidatePassword, salt);
-    return hash == originalHash;
-  }
-
-  async signUp({ username, password }) {
-    const checkUser = await this.userService.findOne({
-      where: {
-        username,
-      },
+  async signUp(signupInputData: SignupInput): Promise<Tokens> {
+    const isUserExist = await this.userService.findOne({
+      username: signupInputData.username,
     });
-    if (checkUser) {
-      throw new Error('Duplicate user');
+
+    if (isUserExist) {
+      throw new Error('User already exists');
     }
-    const newUser = await this.userService.create({
-      username,
-      password: this.hashPassword(password),
-    });
 
-    return await this.tokensService.generateTokens(newUser.userId);
+    const newUser = await this.userService.create(signupInputData);
+
+    return await this.tokensService.generateTokens(newUser.id);
   }
 
-  async logIn(username: string, password: string) {
-    const user = await this.userService.findOne({
-      where: {
-        username,
-      },
-    });
+  async logIn({ username, password }: LoginInput): Promise<Tokens> {
+    const user = await this.userService.findOne({ username });
 
     if (!user) {
-      throw new Error('User not found');
+      throw new NotFoundException('User not found');
     }
-    const isValidPassword = this.checkPassword(user.password, password);
+
+    const isValidPassword: boolean = await this.hashService.comparePassword(
+      user.password,
+      password,
+    );
 
     if (!isValidPassword) {
-      throw new Error('Invalid password');
+      throw new UnauthorizedException('Invalid password');
     }
 
-    return user;
+    return await this.tokensService.generateTokens(user.id);
+  }
+
+  async validateUserPayload(payload: JwtPayload) {
+    return await this.userService.findOne({ id: payload.userId });
   }
 }
