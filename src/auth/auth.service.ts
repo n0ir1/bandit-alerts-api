@@ -1,65 +1,58 @@
-import { Injectable } from '@nestjs/common';
-import * as upash from 'upash';
-import * as pbkdf2 from '@phc/pbkdf2';
-import { UserService } from '../user/user.service';
-import { TokensService } from './tokens.service';
-import { User } from '../user/models/user';
+import {
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { Tokens } from './models/tokens';
-
-interface IAuthData {
-  username: string;
-  password: string;
-}
-
-upash.install('pbkdf2', pbkdf2);
+import { SignupInput } from './dto/signup-input';
+import { LoginInput } from './dto/login-input';
+import { UserService } from '../user/user.service';
+import { HashService } from '../hash/hash.service';
+import { TokensService } from '../tokens/tokens.service';
+import { JwtPayload } from '../tokens/interfaces/jwt-payload.interface';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly userService: UserService,
     private readonly tokensService: TokensService,
+    private readonly hashService: HashService,
   ) {}
 
-  async hashPassword(password: string): Promise<string> {
-    return await upash.hash(password);
-  }
-
-  async checkPassword(hashstr: string, password: string): Promise<boolean> {
-    return await upash.verify(hashstr, password);
-  }
-
-  async signUp({ username, password }: IAuthData): Promise<Tokens> {
-    const checkUser = await this.userService.findOne({
-      where: {
-        username,
-      },
+  async signUp(signupInputData: SignupInput): Promise<Tokens> {
+    const isUserExist = await this.userService.findOne({
+      username: signupInputData.username,
     });
 
-    if (checkUser) {
-      throw new Error('Duplicate user');
+    if (isUserExist) {
+      throw new Error('User already exists');
     }
 
-    const newUser = await this.userService.create({
-      username,
-      password: await this.hashPassword(password),
-    });
+    const newUser = await this.userService.create(signupInputData);
 
-    return await this.tokensService.generateTokens(newUser.userId);
+    return await this.tokensService.generateTokens(newUser.id);
   }
 
-  async logIn({ username, password }: IAuthData): Promise<User> {
-    const user = await this.userService.findByName(username);
+  async logIn({ username, password }: LoginInput): Promise<Tokens> {
+    const user = await this.userService.findOne({ username });
 
     if (!user) {
-      throw new Error('User not found');
+      throw new NotFoundException('User not found');
     }
 
-    const isValidPassword = await this.checkPassword(user.password, password);
+    const isValidPassword: boolean = await this.hashService.comparePassword(
+      user.password,
+      password,
+    );
 
     if (!isValidPassword) {
-      throw new Error('Invalid password');
+      throw new UnauthorizedException('Invalid password');
     }
 
-    return user;
+    return await this.tokensService.generateTokens(user.id);
+  }
+
+  async validateUserPayload(payload: JwtPayload) {
+    return await this.userService.findOne({ id: payload.userId });
   }
 }

@@ -23,7 +23,7 @@ input LoginInput {
 }
 
 type Mutation {
-  addDonationAlert(newAlertInput: NewAlertInput!): Boolean
+  addDonationAlert(newAlertInput: NewAlertInput!): Boolean!
   signup(signupInputData: SignupInput!): Tokens!
   logout: Boolean!
 }
@@ -38,7 +38,7 @@ input NewAlertInput {
 type Query {
   alerts: [Alert!]!
   currentUser: User!
-  user(id: ID, name: String): User!
+  user(id: ID, username: String): User!
   login(loginInputData: LoginInput!): Tokens!
   tokens(refreshToken: String!): Tokens!
 }
@@ -58,6 +58,6 @@ type Tokens {
 }
 
 type User {
-  userId: ID!
+  id: ID!
   username: String!
 }
