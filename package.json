@@ -42,7 +42,7 @@
     "reflect-metadata": "0.1.13",
     "rxjs": "6.5.2",
     "type-graphql": "0.17.6",
-    "typeorm": "0.2.18",
+    "typeorm": "0.2.25",
     "typescript": "3.5.1",
     "upash": "1.0.2"
   },
